@@ -1,0 +1,37 @@
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+
+stages:
+  - build
+  - test
+
+build-ui:
+  stage: build
+  image: docker:26
+  services:
+    - name: docker:26-dind
+  before_script:
+    - docker info
+  script:
+    - docker build -f Dockerfile.ui -t myapp-ui:test .
+    - docker save myapp-ui:test -o myapp-ui.tar
+  artifacts:
+    paths:
+      - myapp-ui.tar
+    expire_in: 1h
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+test-ui:
+  stage: test
+  image: docker:26
+  services:
+    - name: docker:26-dind
+  needs: ["build-ui"]
+  script:
+    - docker load -i myapp-ui.tar
+    - docker run --rm myapp-ui:test pytest -m "search_valid" tests/ui
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
