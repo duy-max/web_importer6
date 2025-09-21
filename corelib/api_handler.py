@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import Callable, Dict, Any, Optional, Tuple
+from typing import Callable, Any, Tuple
 from urllib.parse import urlparse, parse_qs
 from playwright.sync_api import Page, Response
 from corelib import logger
 
 class ApiClient:
-    def __init__(self, page: Page, base_api: Optional[str] = None, log_level: str = "INFO"):
+    def __init__(self, page: Page, base_api: str | None = None, log_level: str = "INFO"):
         self.page = page
         self.base_api = (base_api or "").rstrip("/")
         self.logger = logger.Logger(prefix="API", log_level=log_level)
@@ -13,11 +13,11 @@ class ApiClient:
     # determine which response is the one the test is waiting for
     def _match_predicate(
         self,
-        method: Optional[str],
+        method: str | None,
         path_or_url: str,
-        query: Optional[Dict[str, Any]],
+        query: dict | None,
         allow_subset: bool = True,
-        base_api_override: Optional[str] = None,
+        base_api_override: str | None = None,
     ):
         base = (base_api_override or self.base_api or "").rstrip("/")
         full = path_or_url if path_or_url.startswith("http") else f"{base}{path_or_url}"
@@ -47,12 +47,12 @@ class ApiClient:
 
     def run_and_wait_response(
         self,
-        trigger: Callable[[], Any],
+        trigger: Callable,
         path_or_url: str,
-        method: Optional[str] = None,
-        query: Optional[Dict[str, Any]] = None,
+        method: str | None = None,
+        query: dict | None = None,
         timeout: float = 30000,
-        base_api: Optional[str] = None,  # override theo call
+        base_api: str | None = None,  # override theo call
     ) -> Tuple[Response, Any]:
         pred = self._match_predicate(method=method, path_or_url=path_or_url, query=query, base_api_override=base_api)
         self.logger.info(f"Waiting API: {method or '*'} {path_or_url} query={query or {}} base={base_api or self.base_api}")
@@ -64,13 +64,13 @@ class ApiClient:
 
     def run_and_wait_json(
         self,
-        trigger: Callable[[], Any],
+        trigger: Callable,
         path_or_url: str,
-        method: Optional[str] = None,
-        query: Optional[Dict[str, Any]] = None,
-        expected_status: Optional[int] = 200,
+        method: str | None = None,
+        query: dict | None = None,
+        expected_status: int | None = 200,
         timeout: float = 30000,
-        base_api: Optional[str] = None,  # override theo call
+        base_api: str | None = None,  # override theo call
     ) -> Tuple[Response, Any, Any]:
         resp, result = self.run_and_wait_response(
             trigger, path_or_url, method=method, query=query, timeout=timeout, base_api=base_api

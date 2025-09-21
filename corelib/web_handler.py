@@ -193,8 +193,8 @@ class WebHandler:
     def _action(
         self,
         target: str | Locator,
-        action: Callable[[Locator], Any],
-        on_elements: Callable[[int, Locator], bool] = lambda index, loc: True,
+        action: Callable,
+        on_elements: Callable = lambda index, loc: True,
         stop_on_first: bool = False,
         timeout: int = DEFAULT_TIMEOUT,
         action_name: str = "action",
@@ -244,7 +244,7 @@ class WebHandler:
     def clicks(
         self,
         target: str | Locator,
-        on_elements: Callable[[int, Locator], bool] = lambda index, loc: True,
+        on_elements: Callable= lambda index, loc: True,
         stop_on_first: bool = True,
         timeout: int = DEFAULT_TIMEOUT,
     ):
@@ -261,7 +261,7 @@ class WebHandler:
         )
 
     def get_texts(self, locator_or_elements: str | Locator, 
-        on_elements: Callable[[int, Locator], bool] = lambda index, loc: True,
+        on_elements: Callable= lambda index, loc: True,
         stop_on_first: bool = False,
         timeout: int = DEFAULT_TIMEOUT) -> list[str]:
         """

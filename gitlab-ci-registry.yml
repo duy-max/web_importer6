@@ -1,0 +1,56 @@
+variables:
+  IMAGE_NAME: $CI_REGISTRY_IMAGE/myapp-ui
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+stages:
+  - build
+  - test
+
+# Build & push image lên GitLab Registry
+build-ui:
+  stage: build
+  image: docker:26
+  services:
+    - docker:26-dind
+  before_script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+  script:
+    - docker build -f Dockerfile.ui -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# Test bằng cách pull image từ registry và lấy artifact
+test-ui:
+  stage: test
+  image: docker:26
+  services:
+    - docker:26-dind
+  needs: ["build-ui"]
+  before_script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+  script:
+    - docker pull $IMAGE_NAME:$IMAGE_TAG
+    # Chạy container có tên, không xoá ngay
+    - set +e
+    - docker run --name ui-tests $IMAGE_NAME:$IMAGE_TAG pytest -m "search_valid" tests/ui
+    - TEST_EXIT=$?
+    - set -e
+    # Copy reports/videos ra workspace job
+    # copy sang thư mục reports và video trong workspace của CI job -> để xuất ra artifact
+    # vì -- rm sẽ xóa container sau khi chạy xong job đó
+    - mkdir -p reports videos
+    - docker cp ui-tests:/app/reports/. ./reports || true
+    - docker cp ui-tests:/app/videos/. ./videos || true
+    # Cleanup container
+    - docker rm -f ui-tests || true
+    # Propagate test exit code
+    - exit $TEST_EXIT
+  artifacts:
+    when: always
+    paths:
+      - reports/
+      - videos/
+    expire_in: 7 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'

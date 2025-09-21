@@ -7,11 +7,14 @@ stages:
   - build
   - test
 
-build-ui:
-  stage: build
+.default_job:
   image: docker:26
   services:
     - name: docker:26-dind
+
+build-ui:
+  stage: build
+  extends: .default_job
   before_script:
     - docker info
   script:
@@ -26,12 +29,28 @@ build-ui:
 
 test-ui:
   stage: test
-  image: docker:26
-  services:
-    - name: docker:26-dind
+  extends: .default_job
   needs: ["build-ui"]
   script:
     - docker load -i myapp-ui.tar
-    - docker run --rm myapp-ui:test pytest -m "search_valid" tests/ui
+    # Run container with a name, do not auto-remove (--rm)
+    - set +e
+    - docker run --name ui-tests myapp-ui:test python run.py
+    - TEST_EXIT=$?
+    - set -e
+    # Copy reports/videos from container to job workspace
+    - mkdir -p reports videos
+    - docker cp ui-tests:/app/reports/. ./reports || true
+    - docker cp ui-tests:/app/videos/. ./videos || true
+    # Cleanup container
+    - docker rm -f ui-tests || true
+    # Return test exit code
+    - exit $TEST_EXIT
+  artifacts:
+    when: always
+    paths:
+      - reports/
+      - videos/
+    expire_in: 1 week
   rules:
     - if: '$CI_COMMIT_BRANCH == "develop"'

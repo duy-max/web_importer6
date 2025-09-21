@@ -99,63 +99,55 @@ class Home(WebHandler):
     def get_msg_infor(self):
         return self.get_text(self.LCT.SUCCESSFUL_MSG)
     
-    def get_draft_version_infor(self, is_dev_db: bool = False):
-        # headers = self.get_texts(self.LCT.HEADERS_PRO_DB)
+    def get_draft_version_info(self, is_dev_db: bool = False):
+        # Chọn locator theo môi trường
+        status_locator   = self.LCT.DRAFT_STATUS_DEV_DB if is_dev_db else self.LCT.DRAFT_STATUS_PRO_DB
+        headers_locator  = self.LCT.HEADERS_DEV_DB if is_dev_db else self.LCT.HEADERS_PRO_DB
+        cells_locator    = self.LCT.CELLS_DEV_DB if is_dev_db else self.LCT.CELLS_PRO_DB
+        arrows_locator   = self.LCT.ARROWS_DOWN_ICON_DEV_DB if is_dev_db else self.LCT.ARROWS_DOWN_ICON_PRO_DB
+        action_column    = self.LCT.ACTION_COLUMN_DEV_DB if is_dev_db else self.LCT.ACTION_COLUMN_PRO_DB
+
         draft_info = None
-        if is_dev_db:
-            if self.is_visible(self.LCT.DRAFT_STATUS_DEV_DB, timeout=10000):
-                draft_info = self.get_tabular_data(self.LCT.HEADERS_DEV_DB, locators=self.LCT.CELLS_DEV_DB, row = 1)
-                # official_info_before_update = self.get_tabular_data(self.LCT.HEADERS_PRO_DB, locators=self.LCT.CELLS_PRO_DB, row = 2)
-                self.logger.info(f"value of draft info: {draft_info}")
-                self.clicks(self.LCT.ARROWS_DOWN_ICON_DEV_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
-                action_info = {
-                    self.get_text(self.LCT.ACTION_COLUMN_DEV_DB) : self.get_texts(self.LCT.ACTION_ITEMS)
-                }
-                self.logger.info(f"value of action info: {action_info}")
-                draft_info.update(action_info)
-                self.logger.info(f"value of draft info full: {draft_info}")
-            
-        else:
-            if self.is_visible(self.LCT.DRAFT_STATUS_PRO_DB, timeout=10000):
-                draft_info = self.get_tabular_data(self.LCT.HEADERS_PRO_DB, locators=self.LCT.CELLS_PRO_DB, row = 1)
-                # official_info_before_update = self.get_tabular_data(self.LCT.HEADERS_PRO_DB, locators=self.LCT.CELLS_PRO_DB, row = 2)
-                self.logger.info(f"value of draft info: {draft_info}")
-                self.clicks(self.LCT.ARROWS_DOWN_ICON_PRO_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
-                action_info = {
-                    self.get_text(self.LCT.ACTION_COLUMN_PRO_DB) : self.get_texts(self.LCT.ACTION_ITEMS)
-                }
-                self.logger.info(f"value of action info: {action_info}")
-                draft_info.update(action_info)
-                self.logger.info(f"value of draft info full: {draft_info}")
-                # self.logger.info(f"value of official info before update: {official_info_before_update}")
+        if self.is_visible(status_locator, timeout=10000):
+            draft_info = self.get_tabular_data(headers_locator, locators=cells_locator, row=1)
+            self.logger.info(f"value of draft info: {draft_info}")
+
+            self.clicks(arrows_locator, on_elements=lambda i, _: i == 0, stop_on_first=True)
+
+            action_info = {
+                self.get_text(action_column): self.get_texts(self.LCT.ACTION_ITEMS)
+            }
+            self.logger.info(f"value of action info: {action_info}")
+
+            draft_info.update(action_info)
+            self.logger.info(f"value of draft info full: {draft_info}")
+
         return draft_info
+
   
 
-    
-    def get_data_by_row(self, row: int | None = None, action_include: bool = True, is_dev_db:bool = False):
-        # headers = self.get_texts(self.LCT.HEADERS_PRO_DB)
-        data = {}
-        if is_dev_db:
-            data = self.get_tabular_data(self.LCT.HEADERS_DEV_DB, locators=self.LCT.CELLS_DEV_DB, row = row)
-            if action_include:
-                self.clicks(self.LCT.ARROWS_DOWN_ICON_DEV_DB, on_elements=lambda i, _: i == row - 1, stop_on_first=True)
-                action_info = {
-                    self.get_text(self.LCT.ACTION_COLUMN_DEV_DB) : self.get_texts(self.LCT.ACTION_ITEMS)
-                }
-                self.logger.info(f"value of action info: {action_info}")
-                data.update(action_info)
-                self.logger.info(f"value of draft info full: {data}")
-        else:
-            data = self.get_tabular_data(self.LCT.HEADERS_PRO_DB, locators=self.LCT.CELLS_PRO_DB, row = row)
-            if action_include:
-                self.clicks(self.LCT.ARROWS_DOWN_ICON_PRO_DB, on_elements=lambda i, _: i == row - 1, stop_on_first=True)
-                action_info = {
-                    self.get_text(self.LCT.ACTION_COLUMN_PRO_DB) : self.get_texts(self.LCT.ACTION_ITEMS)
-                }
-                self.logger.info(f"value of action info: {action_info}")
-                data.update(action_info)
-                self.logger.info(f"value of draft info full: {data}")
+    def get_data_by_row(
+        self, row: int | None = None, action_include: bool = True, is_dev_db: bool = False
+    ):
+        # chọn locator theo môi trường
+        headers_locator = self.LCT.HEADERS_DEV_DB if is_dev_db else self.LCT.HEADERS_PRO_DB
+        cells_locator   = self.LCT.CELLS_DEV_DB if is_dev_db else self.LCT.CELLS_PRO_DB
+        arrows_locator  = self.LCT.ARROWS_DOWN_ICON_DEV_DB if is_dev_db else self.LCT.ARROWS_DOWN_ICON_PRO_DB
+        action_column   = self.LCT.ACTION_COLUMN_DEV_DB if is_dev_db else self.LCT.ACTION_COLUMN_PRO_DB
+
+        data = self.get_tabular_data(headers_locator, locators=cells_locator, row=row)
+
+        if action_include:
+            self.clicks(arrows_locator, on_elements=lambda i, _: i == (row - 1), stop_on_first=True)
+            action_info = {
+                self.get_text(action_column): self.get_texts(self.LCT.ACTION_ITEMS)
+            }
+            self.logger.info(f"value of action info: {action_info}")
+            data.update(action_info)
+            self.logger.info(f"value of draft info full: {data}")
+
         return data
+
 
     def get_sections_info(self, section: str, is_dev_db:bool = False):
     # map section name -> index
@@ -169,19 +161,19 @@ class Home(WebHandler):
         if section not in section_map:
             raise ValueError(f"Invalid section '{section}'. Must be one of {list(section_map.keys())}")
 
-        # click button theo index map
-        if is_dev_db:
-            self.clicks(
-                self.LCT.DRAFT_VIEWS_BTN_DEV_DB,
-                on_elements=lambda i, _: i == section_map[section],
-                stop_on_first=True,
-            )
-        else:
-            self.clicks(
-                self.LCT.DRAFT_VIEWS_BTN_PRO_DB,
-                on_elements=lambda i, _: i == section_map[section],
-                stop_on_first=True,
-            )
+    # chọn locator theo flag
+        locator = (
+            self.LCT.DRAFT_VIEWS_BTN_DEV_DB
+            if is_dev_db
+            else self.LCT.DRAFT_VIEWS_BTN_PRO_DB
+        )
+
+    # click button theo index map
+        self.clicks(
+            locator,
+            on_elements=lambda i, _: i == section_map[section],
+            stop_on_first=True,
+        )
 
         self.logger.info(f"value of section map: {section_map[section]}")
 
@@ -200,55 +192,23 @@ class Home(WebHandler):
         self.click_element(self.LCT.CLOSE_SECTION_ICON)
         time.sleep(2)
         return detail_info
-    
-    # def get_sections_dev_db_info(self, section: str):
-    # # map section name -> index
-    #     section_map = {
-    #         "rd_note": 0,
-    #         "log_changes": 1,
-    #         "release_note": 2,
-    #         "lib_log": 3,
-    #     }
-
-    #     if section not in section_map:
-    #         raise ValueError(f"Invalid section '{section}'. Must be one of {list(section_map.keys())}")
-
-    #     # click button theo index map
-    #     self.clicks(
-    #         self.LCT.DRAFT_VIEWS_BTN_DEV_DB,
-    #         on_elements=lambda i, _: i == section_map[section],
-    #         stop_on_first=True,
-    #     )
-
-    #     self.logger.info(f"value of section map: {section_map[section]}")
-
-    #     # lấy các field dạng "Key: Value" trong <p>
-    #     detail_fields = self.get_texts(self.LCT.LOG_CHANGE_DETAIL_FIELDS)
-    #     detail_info = utils.parse_fields_to_dict(detail_fields)
-
-    #     # lấy log changes riêng
-    #     log_changes_title = self.get_text(self.LCT.LOG_CHANGE_TITLE).rstrip(":").strip()
-    #     log_changes_content = self.get_text(self.LCT.LOG_CHANGE_CONTENTS)
-
-    #     # gộp lại (giữ nguyên key gốc, không replace khoảng trắng)
-    #     detail_info[log_changes_title.strip()] = log_changes_content
-
-    #     self.logger.info(f"value of {section} info: {detail_info}")
-    #     self.click_element(self.LCT.CLOSE_SECTION_ICON)
-    #     time.sleep(2)
-    #     return detail_info
 
     
-    def delete_draft_version(self, is_confirm: bool = False, is_cancel: bool = False, is_dev_db:bool = True):
-        if is_dev_db:
-            self.clicks(self.LCT.ARROWS_DOWN_ICON_DEV_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
-        else:
-            self.clicks(self.LCT.ARROWS_DOWN_ICON_PRO_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
+    def delete_draft_version(self, is_confirm: bool = False, is_cancel: bool = False, is_dev_db: bool = True):
+        locator = (
+            self.LCT.ARROWS_DOWN_ICON_DEV_DB
+            if is_dev_db
+            else self.LCT.ARROWS_DOWN_ICON_PRO_DB
+        )
+
+        self.clicks(locator, on_elements=lambda i, _: i == 0, stop_on_first=True)
         self.click_element(self.LCT.DELETE_ACTION)
+
         if is_confirm:
             self.click_element(self.LCT.OK_CONFIRM_BTN)
         if is_cancel:
             self.click_element(self.LCT.CANCEL_CONFIRM_BTN)
+
     
     def edit_draft_version(self, rd_notes: str = "", release_notes: str ="", lib_log:str="" , is_save: bool = False, is_cancel: bool = False):
         self.clicks(self.LCT.ARROWS_DOWN_ICON_PRO_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
@@ -263,10 +223,13 @@ class Home(WebHandler):
     
     def release_draft_version(self, rd_notes: str = "", release_notes: str ="", lib_log:str="" , is_confirm: bool = False, 
                               is_cancel: bool = False, is_close: bool = False, is_dev_db: bool = False):
-        if is_dev_db:
-            self.clicks(self.LCT.ARROWS_DOWN_ICON_DEV_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
-        else:
-            self.clicks(self.LCT.ARROWS_DOWN_ICON_PRO_DB, on_elements=lambda i, _: i == 0, stop_on_first=True)
+        locator = (
+            self.LCT.ARROWS_DOWN_ICON_DEV_DB
+            if is_dev_db
+            else self.LCT.ARROWS_DOWN_ICON_PRO_DB
+        )
+        self.clicks(locator, on_elements=lambda i, _: i == 0, stop_on_first=True)
+
         self.click_element(self.LCT.RELEASE_ACTION)
         self.fill_element(self.LCT.RD_NOTE_RELEASE, rd_notes)
         self.fill_element(self.LCT.RELEASE_NOTE_RELEASE, release_notes)

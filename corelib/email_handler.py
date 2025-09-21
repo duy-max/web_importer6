@@ -54,7 +54,7 @@ def _imap_search(imap_conn: imaplib.IMAP4_SSL, criteria: str) -> List[bytes]:
         return []
     return data[0].split()
 
-def _parse_msg_date(msg: Message) -> Optional[datetime]:
+def _parse_msg_date(msg: Message) -> datetime | None:
     """
     Parse header 'Date' thành datetime UTC.
     """
@@ -405,12 +405,10 @@ def fetch_latest_email(
     username: str,
     password: str,
     sender_filter: str,
-    cutoff_dt_utc: Optional[datetime],
+    cutoff_dt_utc: datetime | None,
     subject_keyword: str ,  
     delivery_wait: int = 5,
-    max_search_days: int = 7,
-    download_first_match: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, any] | None:
     """
     Lấy email mới nhất thỏa:
       - Từ sender_filter

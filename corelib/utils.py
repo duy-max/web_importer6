@@ -214,55 +214,6 @@ def find_import_file(make_name: str, function_name: str, test_case: str = "", fo
     logger.info(f"[import_excel] chosen file: {chosen}")
     return chosen
 
-
-# def find_import_file(make_name: str, function_name: str, test_case: str , folder: str = "test_data") -> Path:
-#     """
-#     Tìm file .zip trong test_data theo dạng tên ghép: {make_name}_{function_name}.zip (không phân biệt hoa/thường, bỏ ký tự đặc biệt).
-#     - Ưu tiên khớp "exact" theo stem (tên file không tính .zip).
-#     - Fallback: stem chứa cả make và function.
-#     - Quét đệ quy mọi thư mục con của test_data.
-#     Trả về: Path file mới nhất nếu có nhiều kết quả.
-#     """
-#     proj_root = Path(__file__).resolve().parents[1]  # d:\webimporter
-#     data_dir = proj_root / folder
-#     if not data_dir.exists():
-#         raise FileNotFoundError(f"Test data folder not found: {data_dir}")
-
-#     def norm(s: str) -> str:
-#         return re.sub(r"\W+", "", (s or "")).lower()
-
-#     mk = norm(make_name)
-#     fn = norm(function_name)
-#     expected_stem = norm(f"{make_name}_{function_name}")  # ví dụ: mitsubishi_networkscan -> mitsubishinetworkscan
-
-#     exact: list[Path] = []
-#     loose: list[Path] = []
-#     scanned: list[str] = []
-
-#     for p in data_dir.rglob("*.zip"):
-#         stem_norm = norm(p.stem)            # tên file không tính .zip
-#         scanned.append(str(p))
-#         if stem_norm == expected_stem:
-#             exact.append(p)
-#         elif mk in stem_norm and fn in stem_norm:
-#             loose.append(p)
-
-#     def pick(cands: list[Path]) -> Path | None:
-#         if not cands:
-#             return None
-#         cands.sort(key=lambda x: x.stat().st_mtime, reverse=True)
-#         return cands[0]
-
-#     chosen = pick(exact) or pick(loose)
-#     if not chosen:
-#         raise FileNotFoundError(
-#             f"No .zip matched file '{make_name}_{function_name}.zip' in {data_dir}\n"
-#             f"Scanned zips:\n- " + "\n- ".join(scanned)
-#         )
-
-#     logger.info(f"[import_excel] chosen file: {chosen}")
-#     return chosen
-
 def download_file(url: str, file_name: str | Path, out_dir: str | Path = "downloads"):
     """
     Tải file (dùng cho URL .zip). Yêu cầu requests.
